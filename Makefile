@@ -48,18 +48,18 @@
         dev.migrate dev.migrate.lms dev.migrate.studio dev.nfs.setup \
         devpi-password dev.provision dev.ps dev.pull dev.pull.without-deps \
         dev.reset dev.reset-repos dev.restart-container dev.restart-devserver \
-        dev.restart-devserver.forum dev.restore dev.rm-stopped dev.shell \
-        dev.shell.analyticspipeline dev.shell.credentials dev.shell.discovery \
-        dev.shell.ecommerce dev.shell.lms dev.shell.lms_watcher \
-        dev.shell.marketing dev.shell.registrar dev.shell.studio \
-        dev.shell.studio_watcher dev.shell.xqueue dev.shell.xqueue_consumer \
-        dev.static dev.static.lms dev.static.studio dev.stats dev.status \
-        dev.stop dev.sync.daemon.start dev.sync.provision \
-        dev.sync.requirements dev.sync.up dev.up dev.up.attach dev.up.shell \
-        dev.up.without-deps dev.up.without-deps.shell dev.up.with-programs \
-        dev.up.with-watchers dev.validate e2e-tests e2e-tests.with-shell \
-        feature-toggle-state help requirements selfcheck upgrade upgrade \
-        up-marketing-sync validate-lms-volume vnc-passwords
+        dev.restore dev.rm-stopped dev.shell dev.shell.analyticspipeline \
+        dev.shell.credentials dev.shell.discovery dev.shell.ecommerce \
+        dev.shell.lms dev.shell.lms_watcher dev.shell.marketing \
+        dev.shell.registrar dev.shell.studio dev.shell.studio_watcher \
+        dev.shell.xqueue dev.shell.xqueue_consumer dev.static dev.static.lms \
+        dev.static.studio dev.stats dev.status dev.stop dev.sync.daemon.start \
+        dev.sync.provision dev.sync.requirements dev.sync.up dev.up \
+        dev.up.attach dev.up.shell dev.up.without-deps \
+        dev.up.without-deps.shell dev.up.with-programs dev.up.with-watchers \
+        dev.validate e2e-tests e2e-tests.with-shell feature-toggle-state help \
+        requirements selfcheck upgrade upgrade up-marketing-sync \
+        validate-lms-volume vnc-passwords
 
 # Load up options (configurable through options.local.mk).
 include options.mk
@@ -369,12 +369,12 @@ dev.cache-programs: ## Copy programs from Discovery to Memcached for use in LMS.
 
 dev.restart-devserver: _expects-service.dev.restart-devserver
 
-dev.restart-devserver.forum:
-	docker-compose exec forum bash -c 'kill $$(ps aux | grep "ruby app.rb" | egrep -v "while|grep" | awk "{print \$$2}")'
-
-dev.restart-devserver.%: ## Kill an edX service's development server. Watcher should restart it.
-	# Applicable to Django services only.
-	docker-compose exec $* bash -c 'kill $$(ps aux | egrep "manage.py ?\w* runserver" | egrep -v "while|grep" | awk "{print \$$2}")'
+dev.restart-devserver.%: ## Kill an edX service's development server. Wrapper command should restart it.
+	# Meant to work on LMS/Studio, Django IDAs, Forums (Ruby) and micro-frontends.
+	docker-compose exec $* bash -c 'kill \
+	"$$(ps aux | egrep "/.*/python /.*/manage.py ?\w* runserver|ruby app.rb|node .*node_modules/.bin/webpack-dev-server" | egrep -v "while|grep" | awk "{print \$$2}")"'
+	@echo "$* has been interrupted and should be restarting."
+	@echo "You can check by attaching to the process: make dev.attach.$*"
 
 dev.logs: ## View logs from running containers.
 	docker-compose logs -f
