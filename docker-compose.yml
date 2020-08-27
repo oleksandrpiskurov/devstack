@@ -531,3 +531,8 @@ volumes:
   mysql_data:
   mysql57_data:
   devpi_data:
+
+networks:
+  default:
+    external:
+      name: cybersmart-platform-core_default
